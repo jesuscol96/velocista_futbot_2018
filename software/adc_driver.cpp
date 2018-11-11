@@ -118,14 +118,19 @@ void get_line_parameters(int *sensor, double *m, double *b, double *R2){
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
 //Class implementation
-matrix::matrix(int _pin_SS1,int _pin_SS2,int _pin_SS3,int _pin_EOC){
+matrix::matrix(int _pin_SS1,int _pin_SS2,int _pin_SS3,int _pin_EOC, int *_sensor){
 
+	//Set matrix pointer
+	sensor=_sensor;
+
+	//Pin assignment
 	pin_SS1=_pin_SS1;
 	pin_SS2=_pin_SS2;
 	pin_SS3=_pin_SS3;
 	pin_EOC=_pin_EOC;
 	pinMode(pin_EOC, INPUT); 
 
+	//Initialize ADC communication
 	SPI_init();
 	ADC_begin(pin_SS1);
 	ADC_begin(pin_SS2);
@@ -133,7 +138,7 @@ matrix::matrix(int _pin_SS1,int _pin_SS2,int _pin_SS3,int _pin_EOC){
 
 }
 
-void matrix::eval_matrix(int *sensor){
+void matrix::eval_matrix(void){
 
 	//Request results from ADC
 	ADC_Convert(pin_SS1);
@@ -147,10 +152,7 @@ void matrix::eval_matrix(int *sensor){
 	ADC_read_FIFO(sensor+16,pin_SS2);
 	ADC_read_FIFO(sensor+32,pin_SS3); 
 
-}
-
-void matrix::sort(int *sensor){
-
+	//Sort received info
 	int buffer[48];
 
 	for (int i = 0; i < 48; i++)
@@ -158,10 +160,10 @@ void matrix::sort(int *sensor){
 
 	for (int i = 0; i < 48; i++)		
 		*(sensor+sort_data[i])=buffer[i];
+
 }
 
-
-void matrix::bin(int *sensor){
+void matrix::bin(void){
 
 	for (int i = 0; i < 48; i++){
 
