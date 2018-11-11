@@ -58,16 +58,16 @@ class matrix{
 	int pin_SS1;  //Slave Select 1
 	int pin_SS2;  //Slave Select 2
 	int pin_SS3;  //Slave Select 3
+	int *sensor;
 	int sort_data[48]={9,2,43,36,29,22,15,8,1,42,35,28,21,14,7,0,25,18,11,4,45,38,31,24,17,10,3,44,37,30,23,16,41,34,27,20,13,6,47,40,33,26,19,12,5,46,39,32};
 
 	public:	
 
-	matrix(int _pin_SS1,int _pin_SS2,int _pin_SS3,int _pin_EOC);
+	matrix(int _pin_SS1,int _pin_SS2,int _pin_SS3,int _pin_EOC, int *_sensor);
 
 	//Stores all sensor´s values in a array
-	void eval_matrix(int *sensor);
-	void sort(int *sensor);
-	void bin(int *sensor);
+	void eval_matrix(void);	
+	void bin(void);
 
 };
 
