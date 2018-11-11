@@ -38,7 +38,7 @@ LOWER_MCU := $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst
 MCU_LD = $(LOWER_MCU).ld
 
 # The name of your project (used to name the compiled .hex file)
-TARGET = test_single_motor
+TARGET = main
 TARGET_PATH = ../software
 
 # Those that specify a NO_ARDUINO environment variable will
@@ -71,7 +71,7 @@ CPUARCH = cortex-m4
 #************************************************************************
 
 
-COMPILERPATH ?= ../../arm/bin
+COMPILERPATH ?= 
 
 #Output file destinatio
 
@@ -84,7 +84,6 @@ OUTPUTPATH ?= ../build
 
 # CPPFLAGS = compiler options for C and C++
 CPPFLAGS = -Wall -g -Os -mcpu=$(CPUARCH) -mthumb -MMD $(OPTIONS) -I. 
-
 # compiler options for C++ only
 CXXFLAGS = -std=gnu++14 -felide-constructors -fno-exceptions -fno-rtti
 
@@ -98,11 +97,11 @@ LDFLAGS = -Os -Wl,--gc-sections,--defsym=__rtc_localtime=0 --specs=nano.specs -m
 LIBS = -lm
 
 # names for the compiler programs
-CC = $(COMPILERPATH)/arm-none-eabi-gcc
-CXX = $(COMPILERPATH)/arm-none-eabi-g++
-OBJCOPY = $(COMPILERPATH)/arm-none-eabi-objcopy
-OBJDUMP = $(COMPILERPATH)/arm-none-eabi-objdump
-SIZE = $(COMPILERPATH)/arm-none-eabi-size
+CC = $(COMPILERPATH)arm-none-eabi-gcc
+CXX = $(COMPILERPATH)arm-none-eabi-g++
+OBJCOPY = $(COMPILERPATH)arm-none-eabi-objcopy
+OBJDUMP = $(COMPILERPATH)arm-none-eabi-objdump
+SIZE = $(COMPILERPATH)arm-none-eabi-size
 
 # automatically create lists of the sources and objects
 # TODO: this does not handle Arduino libraries yet...
