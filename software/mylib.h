@@ -78,16 +78,19 @@ class data_analyzer{  //This class provides methods to analyze matrix sensors di
 
 	//Variables for get_dir algorithm
 	int n=4;
-	double Kadj=(4.0/255.0);
+	double Kadj=(4.0/(2*255.0));
 	double wi[4]={1, 1/2, 1/4, 1/8};  //n=4
 	double w_y=0.1;
 	double x_r[4]={0}; //n=4
 	double y_past_r=0;
 	double x_l[4]={0}; //n=4
 	double y_past_l=0;
+	double slope=0, angle=0, b=0, error=0;
 
 public:
 	data_analyzer(int *sensor_); //constructor
+
+	void analyze(void); //apply weight LMS algorithm
 
 	double get_slope(void); //returns aprox slope
 
