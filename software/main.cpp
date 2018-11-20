@@ -11,46 +11,46 @@
  int main(){
 
  	//Timing / ts_d must be at least 10 times larger than ts_c
- 	unsigned int ts_c=1000; //sample time in micros for pid controllers
- 	unsigned int ts_d=10000; //sample time in micros for data acquisition
+ 	unsigned int ts_c=10000; //sample time in micros for pid controllers
+ 	unsigned int ts_d=100000; //sample time in micros for data acquisition
 
  	//Encoders
- 	int pin1_enc1=1;
- 	int pin2_enc1=2;
- 	int pin1_enc2=3;
- 	int pin2_enc2=4;
+ 	int pin1_enc1=27;
+ 	int pin2_enc1=26;
+ 	int pin1_enc2=38;
+ 	int pin2_enc2=39;
  	freq_encoder enc1(pin1_enc1,pin2_enc1);
  	freq_encoder enc2(pin1_enc2,pin2_enc2);
 
  	//PID controllers
 
  	//Velocity control
- 	double vel_max=3; //Max speed in m/s
- 	double Kp_v=1;
- 	double Ki_v=1;
- 	double Kd_v=1;
+ 	double vel_max=1; //Max speed in m/s
+ 	double Kp_v=3.22;
+ 	double Ki_v=1.61;
+ 	double Kd_v=0;
  	myPID pid_v(Kp_v,Ki_v,Kd_v,ts_c);
 
  	//Dir control
- 	double Kp_a=1;
- 	double Ki_a=1;
- 	double Kd_a=1;
+ 	double Kp_a=6;
+ 	double Ki_a=0.5;
+ 	double Kd_a=3;
  	myPID pid_a(Kp_a,Ki_a,Kd_a,ts_c);
 
  	//PWM pins for motor control
- 	int pin1_m1 = 0;
- 	int pin2_m1 = 0;
- 	int pin1_m2 = 0;
- 	int pin2_m2 = 0;
+ 	int pin1_m1 = 29;
+ 	int pin2_m1 = 30;
+ 	int pin1_m2 = 35;
+ 	int pin2_m2 = 36;
 
  	//General control object
  	control_motors control_bot(&pid_v,&pid_a,&enc1,&enc2,pin1_m1, pin2_m1,pin1_m2,pin2_m2);
 
  	//SPI communication with sensor matrix. By default pinMOSI=11, pinMISO=12, pinSCK=13
- 	int pin_EOC = 0;  
-	int pin_SS1 = 0;  
-	int pin_SS2 = 0;  
-	int pin_SS3 = 0;  
+ 	int pin_EOC = 7;  
+	int pin_SS1 = 3;  
+	int pin_SS2 = 5;  
+	int pin_SS3 = 9;  
 	int data[49]={0}; //Array of data initialization
 	matrix sensors(pin_SS1,pin_SS2,pin_SS3,pin_EOC,data);
 
@@ -67,8 +67,8 @@
 	
 
 	//Fixed variables for loop
-	double max_error=10;    //Values obtained by algoritm testing on Octave
-	double k_vel=2.5; //Adjust constant for speed
+	double max_error=20;    //Values obtained by algoritm testing on Octave
+	double k_vel=4; //Adjust constant for speed
 	double min_error=0.9;
 	double min_mean=15;
 	double turning_w=1.5;
@@ -91,6 +91,7 @@
 	 		sensors.eval_matrix();
 	
 	 		//Analyze received data
+	 		analyzer.analyze();
 	 		error=analyzer.get_error();
 	 		mean=analyzer.get_mean();
 	 		dir=analyzer.get_dir();
