@@ -143,11 +143,13 @@
 
 		 	analogWrite(pin2_m1,0);
 		 	int pwm = (int)(res*vol_m1/Vmax);
+		 	if(pwm > 255) pwm=255;
 		 	analogWrite(pin1_m1,pwm);
 		 }
 		 else{
 		 	analogWrite(pin1_m1,0);
 		 	int pwm = (int)(-1*res*vol_m1/Vmax);
+		 	if(pwm > 255) pwm=255;
 		 	analogWrite(pin2_m1,pwm);
 		 }
 
@@ -156,11 +158,13 @@
 
 		 	analogWrite(pin2_m2,0);
 		 	int pwm = (int)(res*vol_m2/Vmax);
+		 	if(pwm > 255) pwm=255;
 		 	analogWrite(pin1_m2,pwm);
 		 }
 		 else{
 		 	analogWrite(pin1_m2,0);
 		 	int pwm = (int)(-1*res*vol_m2/Vmax);
+		 	if(pwm > 255) pwm=255;
 		 	analogWrite(pin2_m2,pwm);
 		 }	
 
@@ -176,32 +180,90 @@
 		
 	}
 
+	void data_analyzer::analyze(void){
+
+		double X[size][2]={0}; //X matrix
+		double D[49]={0};  //D vector
+		double prob[49]={0};
+
+		//Define		
+		for(int i = 0; i < 7; i++)
+			for(int j = 0; j < 7; j++){
+
+				int k=7*i+j;
+				prob[k]= ((double) *(sensor+k))/255.0;								
+				X[k][0]=prob[k];
+				X[k][1]=(i+1)*prob[k];
+				D[k]=(j+1)*prob[k];				
+			}	
+
+		//Hard calculations
+		double M[2][2]={0};
+
+		//X'*X
+		for(int i = 0; i < size; i++){			
+			M[0][0]+=X[i][0]*X[i][0];
+			M[0][1]+=X[i][0]*X[i][1];			
+			M[1][1]+=X[i][1]*X[i][1];
+		}
+		    M[1][0]=M[0][1];		 
+
+		//(X'*X)^-1		  
+		 double det=M[0][0]*M[1][1]-M[1][0]*M[0][1];
+		 double hold; //buffer
+		 hold=M[0][0];
+		 M[0][0]=M[1][1]/det;
+		 M[0][1]=-1.0*M[0][1]/det;
+		 M[1][0]=-1.0*M[1][0]/det;
+		 M[1][1]=hold/det;
+		 
+		 //Reset slope, b
+		 slope=0;
+		 b=0;
+
+		 //(X'*X)^-1 *X' * D / Get slope, b
+		 for(int i = 0; i < size; i++){		 	
+		 	b+=(M[0][0]*X[i][0]+M[0][1]*X[i][1])*D[i];
+		 	slope+=(M[1][0]*X[i][0]+M[1][1]*X[i][1])*D[i];
+		 }
+
+		 //Error calculation
+		 error=0;		
+		 for(int i = 0; i < 7; i++){
+
+		 	double y=(slope*(i+1)+b);
+
+			for(int j = 0; j < 7; j++){	
+
+				int k=7*i+j;
+				hold=y-(j+1);
+				error+=prob[k]*hold*hold;			
+			}
+		}	
+			error*=0.5;
+
+		//Angle
+		angle=-1*atan(slope); 
+	}
+
 	double data_analyzer::get_slope(void){
 
-		//do something
-
-		return 0;
+		return slope;
 	}
 
 	double data_analyzer::get_angle(void){
 
-		//do something
-
-		return 0;
+		return angle;
 	}
 
 	double data_analyzer::get_b(void){
 
-		//do something
-
-		return 0;
+		return b;
 	}
 
 	double data_analyzer::get_error(void){
 
-		//do something
-
-		return 0;
+		return error;
 	}	
 
 	double data_analyzer::get_mean(void){
