@@ -14,7 +14,7 @@
 
  	//Timing / ts_d must be at least 10 times larger than ts_c
  	unsigned int ts_c=3; //sample time in millis for pid controllers
- 	unsigned int ts_d=20000; //sample time in millis for data acquisition
+ 	unsigned int ts_d=20; //sample time in millis for data acquisition
 
  	//Encoders
  	int pin1_enc1=27;
@@ -86,7 +86,7 @@
  	while(1){
 
  		//Data acquisition
- 		if(ts_d>millis()-time_d){
+ 		if(ts_d<millis()-time_d){
  		
 	 		//Update data
 	 		sensors.eval_matrix();
@@ -100,7 +100,7 @@
 	 		//Decide what to do
 	 		if((error<max_error && mean<min_mean) || error>max_error ){  //Blank way or intersection
 
-	 			//vel=0; //Stop
+	 			vel=0; //Stop
 
 	 			 //Use turning control 	
 	 			turn_or_angle=TURNING_CONTROL;
@@ -113,8 +113,8 @@
 	 		}	 	
 	 		else{	//Standard way
 
-	 			//Determine vehicle's speed
-	 			//vel=vel_max*exp(-1*error/k_vel);
+	 			 //Determine vehicle's speed
+	 			vel=vel_max*exp(-1*error/k_vel);
 
 	 			 //Use angle control 	
 	 			turn_or_angle=ANGLE_CONTROL;
@@ -127,7 +127,7 @@
 	 	}
 
 	 	//Control action
-	 	if (ts_c>millis()-time_c){
+	 	if (ts_c<millis()-time_c){
 	 		
 	 		//Take action
 	 		control_bot.set(vel,0,turn_or_angle);
