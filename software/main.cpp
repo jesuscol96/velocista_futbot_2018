@@ -13,8 +13,8 @@
  int main(){
 
  	//Timing / ts_d must be at least 10 times larger than ts_c
- 	unsigned int ts_c=3; //sample time in millis for pid controllers
- 	unsigned int ts_d=20; //sample time in millis for data acquisition
+ 	unsigned int ts_c=6; //sample time in millis for pid controllers
+ 	unsigned int ts_d=50; //sample time in millis for data acquisition
 
  	//Encoders
  	int pin1_enc1=27;
@@ -27,15 +27,15 @@
  	//PID controllers
 
  	//Velocity control
- 	double vel_max=4; //Max speed in m/s
- 	double Kp_v=60.5;
- 	double Ki_v=1816;
+ 	double vel_max=0.5; //Max speed in m/s
+ 	double Kp_v=45;
+ 	double Ki_v=900;
  	double Kd_v=0;
  	myPID pid_v(Kp_v,Ki_v,Kd_v,ts_c);
 
  	//Dir control
- 	double Kp_a=60.5;
- 	double Ki_a=1816;
+ 	double Kp_a=45;
+ 	double Ki_a=900;
  	double Kd_a=0;
  	myPID pid_a(Kp_a,Ki_a,Kd_a,ts_c);
 
@@ -65,7 +65,7 @@
 	double error=0; //aprox error
 	double mean=0; //Array's mean value
 	int dir=0;  //Suggested turning direction
-	double vel=2; // Vehicle's speed
+	double vel=0; // Vehicle's speed
 	
 
 	//Fixed variables for loop
@@ -98,6 +98,7 @@
 	 		dir=analyzer.get_dir();
 
 	 		//Decide what to do
+	 		/*
 	 		if((error<max_error && mean<min_mean) || error>max_error ){  //Blank way or intersection
 
 	 			vel=0; //Stop
@@ -111,15 +112,15 @@
 	 				dir_value=-1*turning_w;
 	 			
 	 		}	 	
-	 		else{	//Standard way
+	 		else{	//Standard way  */
 
-	 			 //Determine vehicle's speed
-	 			vel=vel_max*exp(-1*error/k_vel);
+	 			//Determine vehicle's speed
+	 			//vel=vel_max*exp(-1*error/k_vel);
 
 	 			 //Use angle control 	
 	 			turn_or_angle=ANGLE_CONTROL;
 	 			dir_value=analyzer.get_angle();			
-	 		}	 		
+	 		//} 		
 
 	 		//Update time
 	 		time_d=millis();
@@ -130,7 +131,7 @@
 	 	if (ts_c<millis()-time_c){
 	 		
 	 		//Take action
-	 		control_bot.set(vel,0,turn_or_angle);
+	 		control_bot.set(0,dir_value,turn_or_angle);
 
 	 		//Update time
 	 		time_c=millis();
