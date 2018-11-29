@@ -8,11 +8,13 @@
  #include "mylib.h"
  #include "adc_driver.h"
 
+
+
  int main(){
 
  	//Timing / ts_d must be at least 10 times larger than ts_c
- 	unsigned int ts_c=10000; //sample time in micros for pid controllers
- 	unsigned int ts_d=100000; //sample time in micros for data acquisition
+ 	unsigned int ts_c=3; //sample time in millis for pid controllers
+ 	unsigned int ts_d=20000; //sample time in millis for data acquisition
 
  	//Encoders
  	int pin1_enc1=27;
@@ -25,16 +27,16 @@
  	//PID controllers
 
  	//Velocity control
- 	double vel_max=1; //Max speed in m/s
- 	double Kp_v=3.22;
- 	double Ki_v=1.61;
+ 	double vel_max=4; //Max speed in m/s
+ 	double Kp_v=60.5;
+ 	double Ki_v=1816;
  	double Kd_v=0;
  	myPID pid_v(Kp_v,Ki_v,Kd_v,ts_c);
 
  	//Dir control
- 	double Kp_a=6;
- 	double Ki_a=0.5;
- 	double Kd_a=3;
+ 	double Kp_a=60.5;
+ 	double Ki_a=1816;
+ 	double Kd_a=0;
  	myPID pid_a(Kp_a,Ki_a,Kd_a,ts_c);
 
  	//PWM pins for motor control
@@ -63,29 +65,28 @@
 	double error=0; //aprox error
 	double mean=0; //Array's mean value
 	int dir=0;  //Suggested turning direction
-	double vel=0; // Vehicle's speed
+	double vel=2; // Vehicle's speed
 	
 
 	//Fixed variables for loop
-	double max_error=20;    //Values obtained by algoritm testing on Octave
-	double k_vel=4; //Adjust constant for speed
-	double min_error=0.9;
-	double min_mean=15;
-	double turning_w=1.5;
+	double max_error=27;    //Values obtained by algoritm testing on Octave
+	double k_vel=20; //Adjust constant for speed	
+	double min_mean=40;
+	double turning_w=10;  //w speed
 
 	//Introduce delay
-	int start_delay=10;  //seg delay before start
+	int start_delay=4;  //seg delay before start
 	delay(start_delay*1000); 
 
 	//Init time
-	unsigned int time_c=micros();
-	unsigned int time_d=micros();
+	unsigned int time_c=millis();
+	unsigned int time_d=millis();
 	
 
  	while(1){
 
  		//Data acquisition
- 		if(ts_d>micros()-time_d){
+ 		if(ts_d>millis()-time_d){
  		
 	 		//Update data
 	 		sensors.eval_matrix();
@@ -97,9 +98,9 @@
 	 		dir=analyzer.get_dir();
 
 	 		//Decide what to do
-	 		if((error<min_error && mean<min_mean) || error>max_error ){  //Blank way or intersection
+	 		if((error<max_error && mean<min_mean) || error>max_error ){  //Blank way or intersection
 
-	 			vel=0; //Stop
+	 			//vel=0; //Stop
 
 	 			 //Use turning control 	
 	 			turn_or_angle=TURNING_CONTROL;
@@ -113,7 +114,7 @@
 	 		else{	//Standard way
 
 	 			//Determine vehicle's speed
-	 			vel=vel_max*exp(-1*error/k_vel);
+	 			//vel=vel_max*exp(-1*error/k_vel);
 
 	 			 //Use angle control 	
 	 			turn_or_angle=ANGLE_CONTROL;
@@ -121,21 +122,22 @@
 	 		}	 		
 
 	 		//Update time
-	 		time_d=micros();
+	 		time_d=millis();
 
 	 	}
 
 	 	//Control action
-	 	if (ts_c>micros()-time_c){
+	 	if (ts_c>millis()-time_c){
 	 		
 	 		//Take action
-	 		control_bot.set(vel,dir_value,turn_or_angle);
+	 		control_bot.set(vel,0,turn_or_angle);
 
 	 		//Update time
-	 		time_c=micros();
+	 		time_c=millis();
  		}
 
  	}
 
  	return 0;
  }
+
