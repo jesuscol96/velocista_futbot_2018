@@ -48,7 +48,7 @@
 		Ki=Ki_;
 		Kd=Kd_;
 
-		double ts= ((int) ts_)/1000000;	//micros to secs
+		double ts= ((double) ts_)/1000;	//millis to secs
 		//Values
 		A=Kp+Ki*ts+(Kd/ts);		
 		B=-Kp-(2*Kd/ts);
@@ -101,7 +101,18 @@
 			pinMode(pin2_m2,OUTPUT);
 
 			//Set analog resolution
-			analogWriteResolution(16);
+			analogWriteResolution(14);
+			//Set PWM freq
+			analogWriteFrequency(pin1_m1, max_pwm_freq);
+			analogWriteFrequency(pin2_m1, max_pwm_freq);
+			analogWriteFrequency(pin1_m2, max_pwm_freq);
+			analogWriteFrequency(pin2_m2, max_pwm_freq);
+			//
+			analogWrite(pin1_m1,0);
+			analogWrite(pin2_m1,0);
+			analogWrite(pin1_m2,0);
+			analogWrite(pin2_m2,0);
+
 	}
 
 	void control_motors::set(double sp_vel, double m_dir, bool control_type){
@@ -128,13 +139,17 @@
 		 else{ //Turning controller implementation
 
 		 	double t_w=k_turning*(w_m1-w_m2);  //Clockwise dir is positive
-		 	double dir_error=m_dir-t_w;//sp=t_w
+		 	double dir_error=m_dir-t_w;//sp=m_dir
 		 	c_signal2=vdif->eval_PID(dir_error);
-		 }		 
+		 }	
+
+
+		 if(c_signal1>=Vc_sat) c_signal1=Vc_sat; //Common voltage saturation
+		 if(c_signal2>=Vd_sat) c_signal2=Vd_sat; //Dif voltage saturation
 
 		 //Voltage to each motor:
-		 double vol_m1=c_signal1-c_signal2;
-		 double vol_m2=c_signal1+c_signal2;	
+		 double vol_m1=c_signal1+c_signal2;
+		 double vol_m2=c_signal1-c_signal2;	
 
 		 //PWM equivalent
 
@@ -142,15 +157,13 @@
 		 if(vol_m1 >= 0){
 
 		 	analogWrite(pin2_m1,0);
-		 	int pwm = (int)(res*vol_m1/Vmax);
-		 	if(pwm > 255) pwm=255;
+		 	int pwm =  (int)(res*vol_m1/Vmax);
 		 	analogWrite(pin1_m1,pwm);
 		 }
 		 else{
 		 	analogWrite(pin1_m1,0);
 		 	int pwm = (int)(-1*res*vol_m1/Vmax);
-		 	if(pwm > 255) pwm=255;
-		 	analogWrite(pin2_m1,pwm);
+		    analogWrite(pin2_m1,pwm);
 		 }
 
 		  //M2 (Right motor)
@@ -158,14 +171,12 @@
 
 		 	analogWrite(pin2_m2,0);
 		 	int pwm = (int)(res*vol_m2/Vmax);
-		 	if(pwm > 255) pwm=255;
-		 	analogWrite(pin1_m2,pwm);
+		    analogWrite(pin1_m2,pwm);
 		 }
 		 else{
 		 	analogWrite(pin1_m2,0);
 		 	int pwm = (int)(-1*res*vol_m2/Vmax);
-		 	if(pwm > 255) pwm=255;
-		 	analogWrite(pin2_m2,pwm);
+		    analogWrite(pin2_m2,pwm);
 		 }	
 
 	}
@@ -305,7 +316,8 @@
 	double data_analyzer::analyze_side(bool side){
 
 		double mean=this->get_half_mean(side);
-
+		mean*=Kadj;
+		
 		double *x, *y;  //Pointer to input and output data
 
 		//Decide which side
@@ -323,8 +335,8 @@
 
 		double output=0;
 
-		for (int i = 0; i < n; ++i)
-			output+=(*(x+i))*wi[i];
+		for (int i = 0; i < n; i++)
+			output+=(*(x+i))*wi[i];				
 
 		output+=w_y*(*y);
 		output=this->sigmoid(output);
@@ -338,6 +350,8 @@
 
 		double dir_r=this->analyze_side(true);
 		double dir_l=this->analyze_side(false);
+		Serial.printf("Right: %d\n", (int) (dir_r*100));
+		Serial.printf("Left: %d\n", (int) (dir_l*100));
 
 		if(dir_r>dir_l)
 			return 1;
